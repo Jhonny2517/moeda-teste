@@ -3,6 +3,7 @@ import { ethers } from "ethers";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { LayoutGrid, Wallet, BarChart3, Link as LinkIcon } from "lucide-react";
 
 const tokenAddress = "0x43D057244620b48613b9b798d1eE7d4C9145E4f9";
 const tokenAbi = ["function balanceOf(address owner) view returns (uint256)"];
@@ -48,59 +49,81 @@ export default function USDTWeb3DApp() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white p-6">
-      <h1 className="text-3xl font-bold text-center mb-8">Dashboard Web3 - USDT</h1>
+    <div className="min-h-screen bg-gradient-to-br from-[#0f0f0f] via-black to-[#1a1a1a] text-white p-6">
+      <div className="max-w-6xl mx-auto">
+        <header className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-2">
+            <img src={tokenLogo} alt="Logo" className="w-10 h-10 rounded-full" />
+            <h1 className="text-2xl font-bold">USDT Web3 Dashboard</h1>
+          </div>
+          <Button onClick={connectWallet} className="bg-green-600 hover:bg-green-700">
+            Conectar Trust Wallet
+          </Button>
+        </header>
 
-      <Tabs defaultValue="wallet" className="max-w-2xl mx-auto">
-        <TabsList className="grid grid-cols-2 w-full mb-4">
-          <TabsTrigger value="wallet">Carteira</TabsTrigger>
-          <TabsTrigger value="analytics">Análise</TabsTrigger>
-        </TabsList>
+        <Tabs defaultValue="wallet" className="">
+          <TabsList className="grid grid-cols-3 gap-4 mb-6">
+            <TabsTrigger value="wallet" className="flex items-center gap-2">
+              <Wallet size={18} /> Carteira
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="flex items-center gap-2">
+              <BarChart3 size={18} /> Análise
+            </TabsTrigger>
+            <TabsTrigger value="explorer" className="flex items-center gap-2">
+              <LinkIcon size={18} /> Explorer
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="wallet">
-          <Card className="bg-[#1e1e1e] text-center p-6 rounded-2xl shadow-lg">
-            <img src={tokenLogo} alt="USDT Logo" className="w-16 h-16 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-2">{tokenName} Token</h2>
-            <p className="text-sm mb-2">
-              Carteira: <span className="break-all">{walletAddress || "-"}</span>
-            </p>
-            {walletAddress && (
-              <a
-                href={etherscanLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-400 text-sm underline"
-              >
-                Ver no Etherscan
-              </a>
-            )}
-            <p className="text-sm mt-2">
-              Saldo: <strong>{balance}</strong> {tokenName}
-            </p>
-            <p className="text-sm">Valor simulado: <strong>$ 1.00</strong> por {tokenName}</p>
-            <p className="text-xl font-semibold text-green-400 mt-4">
-              Total em Dólares: {totalUSD}
-            </p>
-            <Button onClick={connectWallet} className="mt-6 bg-green-600 hover:bg-green-700">
-              Conectar Trust Wallet
-            </Button>
-          </Card>
-        </TabsContent>
+          <TabsContent value="wallet">
+            <Card className="bg-[#1e1e1e] text-center p-6 rounded-2xl shadow-lg">
+              <img src={tokenLogo} alt="USDT Logo" className="w-16 h-16 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold mb-2">{tokenName} Token</h2>
+              <p className="text-sm mb-2">
+                Carteira: <span className="break-all">{walletAddress || "-"}</span>
+              </p>
+              <p className="text-sm mt-2">
+                Saldo: <strong>{balance}</strong> {tokenName}
+              </p>
+              <p className="text-sm">Valor simulado: <strong>$ 1.00</strong> por {tokenName}</p>
+              <p className="text-xl font-semibold text-green-400 mt-4">
+                Total em Dólares: {totalUSD}
+              </p>
+            </Card>
+          </TabsContent>
 
-        <TabsContent value="analytics">
-          <Card className="bg-[#1e1e1e] text-center p-6 rounded-2xl shadow-lg">
-            <h2 className="text-xl font-semibold mb-4">Análise de Token</h2>
-            <p className="text-sm mb-2">Este painel pode exibir:</p>
-            <ul className="text-sm list-disc list-inside text-left">
-              <li>Gráfico de saldo histórico</li>
-              <li>Preço real (via CoinGecko)</li>
-              <li>Volume de transações (via Polygonscan ou Etherscan)</li>
-              <li>Pool de liquidez e pares de swap</li>
-              <li>Market cap simulado</li>
-            </ul>
-          </Card>
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="analytics">
+            <Card className="bg-[#1e1e1e] text-center p-6 rounded-2xl shadow-lg">
+              <h2 className="text-xl font-semibold mb-4">Análise de Token</h2>
+              <p className="text-sm mb-2">Este painel pode exibir:</p>
+              <ul className="text-sm list-disc list-inside text-left">
+                <li>Gráfico de saldo histórico</li>
+                <li>Preço real (via CoinGecko)</li>
+                <li>Volume de transações (via Polygonscan ou Etherscan)</li>
+                <li>Pool de liquidez e pares de swap</li>
+                <li>Market cap simulado</li>
+              </ul>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="explorer">
+            <Card className="bg-[#1e1e1e] text-center p-6 rounded-2xl shadow-lg">
+              <h2 className="text-xl font-semibold mb-4">Explorador</h2>
+              {walletAddress ? (
+                <a
+                  href={etherscanLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-400 underline text-sm"
+                >
+                  Ver endereço no Etherscan
+                </a>
+              ) : (
+                <p className="text-sm text-gray-400">Conecte uma carteira para ver o explorador</p>
+              )}
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 }
