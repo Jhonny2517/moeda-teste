@@ -48,11 +48,11 @@
 </head>
 <body>
   <div class="card">
-    <img class="logo" src="https://cryptologos.cc/logos/tether-usdt-logo.png?v=026" alt="USDT Logo">
+    <img class="logo" src="https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/dAC17F958D2ee523a2206206994597C13D831ec7/logo.png" alt="USDT Logo">
     <h2>USDT Token</h2>
     <p id="wallet">Carteira: -</p>
     <p>Saldo: <strong id="balance">-</strong> USDT</p>
-    <p>Valor simulado: <strong>$ 1,00</strong> por USDT</p>
+    <p>Valor simulado: <strong>$ 1.00</strong> por USDT</p>
     <div class="valor">Total em Dólares: <strong id="total">-</strong></div>
     <button onclick="connectWallet()">Conectar Trust Wallet</button>
   </div>
@@ -80,11 +80,19 @@
 
         // USDT com 6 casas decimais
         const formatted = ethers.utils.formatUnits(balance, 6);
-        document.getElementById("balance").textContent = formatted;
+        const formattedBalance = parseFloat(formatted).toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 6
+        });
+        document.getElementById("balance").textContent = formattedBalance;
 
         const valorPorToken = 1.0;
         const total = parseFloat(formatted) * valorPorToken;
-        document.getElementById("total").textContent = "$ " + total.toFixed(2);
+        const formattedTotal = total.toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+        document.getElementById("total").textContent = "$ " + formattedTotal;
       } else {
         alert("Wallet Web3 nao encontrada");
       }
