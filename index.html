@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Painel USDt Web3</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      text-align: center;
+      padding: 40px;
+    }
+    .card {
+      background: #fff;
+      padding: 30px;
+      border-radius: 16px;
+      max-width: 400px;
+      margin: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    img {
+      width: 64px;
+      margin-bottom: 20px;
+    }
+    h2 {
+      margin-bottom: 10px;
+    }
+    .valor {
+      color: green;
+      font-size: 22px;
+      margin-top: 20px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <img src="https://cryptologos.cc/logos/tether-usdt-logo.png" alt="USDT">
+    <h2>USDZ Token</h2>
+    <p id="wallet">Carteira: -</p>
+    <p>Saldo: <strong id="balance">-</strong> USDT</p>
+    <p>Valor simulado: <strong>$ 1,00</strong> por USDT</p>
+    <div class="valor">Total em Dólares: <strong id="total">-</strong></div>
+    <button onclick="connectWallet()">Conectar MetaMask</button>
+  </div>
+
+  <script>
+    const tokenAddress = "0x43D057244620b48613b9b798d1eE7d4C9145E4f9";
+    const tokenAbi = [
+      "function balanceOf(address owner) view returns (uint256)",
+      "function decimals() view returns (uint8)"
+    ];
+
+    let provider;
+    let signer;
+
+    async function connectWallet() {
+      if (window.ethereum) {
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        signer = provider.getSigner();
+
+        const address = await signer.getAddress();
+        document.getElementById("wallet").textContent = "Carteira: " + address;
+
+        const contract = new ethers.Contract(tokenAddress, tokenAbi, provider);
+        const balance = await contract.balanceOf(address);
+        const decimals = await contract.decimals();
+
+        const formatted = ethers.utils.formatUnits(balance, decimals);
+        document.getElementById("balance").textContent = formatted;
+
+        const valorPorToken = 5.0;
+        const total = parseFloat(formatted) * valorPorToken;
+        document.getElementById("total").textContent = "R$ " + total.toFixed(2);
+      } else {
+        alert("MetaMask nao encontrada");
+      }
+    }
+  </script>
+</body>
+</html>
