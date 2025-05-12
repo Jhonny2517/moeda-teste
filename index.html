@@ -48,13 +48,13 @@
 </head>
 <body>
   <div class="card">
-    <img class="logo" src="/mnt/data/e5e1d505-574c-4ca2-ac3e-8cf5b3a982c4.png" alt="USDT Logo">
+    <img class="logo" src="https://cryptologos.cc/logos/tether-usdt-logo.png?v=026" alt="USDT Logo">
     <h2>USDT Token</h2>
     <p id="wallet">Carteira: -</p>
     <p>Saldo: <strong id="balance">-</strong> USDT</p>
     <p>Valor simulado: <strong>$ 1,00</strong> por USDT</p>
     <div class="valor">Total em Dólares: <strong id="total">-</strong></div>
-    <button onclick="connectWallet()">Conectar MetaMask</button>
+    <button onclick="connectWallet()">Conectar Trust Wallet</button>
   </div>
 
   <script>
@@ -86,7 +86,7 @@
         const total = parseFloat(formatted) * valorPorToken;
         document.getElementById("total").textContent = "$ " + total.toFixed(2);
       } else {
-        alert("MetaMask nao encontrada");
+        alert("Wallet Web3 nao encontrada");
       }
     }
   </script>
