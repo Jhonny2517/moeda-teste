@@ -2,22 +2,23 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Painel USDt Web3</title>
+  <title>Painel USDT Web3</title>
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f0f0f0;
+      background-color: #000;
+      color: #fff;
       text-align: center;
       padding: 40px;
     }
     .card {
-      background: #fff;
+      background: #1e1e1e;
       padding: 30px;
       border-radius: 16px;
       max-width: 400px;
       margin: auto;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      box-shadow: 0 0 15px rgba(0,0,0,0.5);
     }
     img {
       width: 64px;
@@ -25,9 +26,10 @@
     }
     h2 {
       margin-bottom: 10px;
+      color: #fff;
     }
     .valor {
-      color: green;
+      color: #00ff99;
       font-size: 22px;
       margin-top: 20px;
     }
@@ -46,7 +48,7 @@
 <body>
   <div class="card">
     <img src="https://cryptologos.cc/logos/tether-usdt-logo.png" alt="USDT">
-    <h2>USDZ Token</h2>
+    <h2>USDT Token</h2>
     <p id="wallet">Carteira: -</p>
     <p>Saldo: <strong id="balance">-</strong> USDT</p>
     <p>Valor simulado: <strong>$ 1,00</strong> por USDT</p>
@@ -80,9 +82,9 @@
         const formatted = ethers.utils.formatUnits(balance, decimals);
         document.getElementById("balance").textContent = formatted;
 
-        const valorPorToken = 5.0;
+        const valorPorToken = 1.0;
         const total = parseFloat(formatted) * valorPorToken;
-        document.getElementById("total").textContent = "R$ " + total.toFixed(2);
+        document.getElementById("total").textContent = "$ " + total.toFixed(2);
       } else {
         alert("MetaMask nao encontrada");
       }
