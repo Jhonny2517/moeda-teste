@@ -1,121 +1,147 @@
 from pathlib import Path
-import shutil
 
-# Criar um HTML com as funcionalidades visuais solicitadas
+# Caminho de saída
+output_path = Path("/mnt/data/usdt-e-multichain-dashboard.html")
+
+# HTML consolidado do painel multi-chain
+html_code = """[PASTE FROM PREVIOUS COMPLETED HTML BLOCK]"""  # Substituirei com o conteúdo real
+
+# Pegando o conteúdo da última mensagem que gerou o HTML completo
 html_code = '''
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>USDT.e Wallet Dashboard</title>
+  <title>USDT.e Multi-Chain Wallet Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/ethers@6.6.2/dist/ethers.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   <style>
     body {
-      background: #111827;
+      background: #0f172a;
       color: white;
       font-family: Arial, sans-serif;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
       margin: 0;
+      padding: 0;
     }
-    .container {
-      background: #1f2937;
-      border-radius: 16px;
-      padding: 24px;
-      width: 100%;
-      max-width: 420px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.3);
-      text-align: center;
-    }
-    .logo {
+    header {
+      padding: 16px;
+      background: #1e293b;
       display: flex;
-      justify-content: center;
+      justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
     }
-    .logo i {
-      font-size: 28px;
-      margin-right: 10px;
-    }
-    h1 {
+    header h1 {
       margin: 0;
-      font-size: 22px;
-      text-transform: uppercase;
+      font-size: 20px;
       color: #60a5fa;
     }
-    button {
+    main {
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+    }
+    button, select {
       background-color: #3b82f6;
       color: white;
       border: none;
-      padding: 12px 24px;
+      padding: 10px 16px;
+      margin: 10px 0;
       border-radius: 8px;
       font-size: 16px;
       cursor: pointer;
-      transition: all 0.2s ease;
     }
-    button:hover {
-      background-color: #2563eb;
-      transform: scale(1.03);
+    select {
+      background-color: #1e293b;
+      border: 1px solid #334155;
+      color: white;
     }
-    button:active {
-      transform: scale(0.97);
-    }
-    .info {
+    table {
+      width: 100%;
+      border-collapse: collapse;
       margin-top: 20px;
-      background: #374151;
-      padding: 12px;
-      border-radius: 8px;
-      word-break: break-all;
+    }
+    th, td {
+      border-bottom: 1px solid #334155;
+      padding: 10px;
+      text-align: left;
+    }
+    th {
+      background-color: #1e293b;
+      color: #60a5fa;
     }
     .copy-btn {
       background: transparent;
       color: #60a5fa;
       border: none;
-      margin-left: 8px;
       cursor: pointer;
-    }
-    .connected {
-      background-color: #10b981;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 13px;
-      display: inline-block;
-      margin-bottom: 10px;
+      margin-left: 8px;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="logo">
-      <i class="fas fa-wallet"></i>
-      <h1>USDT.e Wallet</h1>
-    </div>
-    <div id="status"></div>
+  <header>
+    <h1><i class="fas fa-wallet"></i> USDT.e Multi-Chain Wallet</h1>
+    <select id="chainSelect" onchange="changeChain()">
+      <option value="ethereum">Ethereum / Polygon</option>
+      <option value="solana">Solana</option>
+      <option value="tron">Tron</option>
+      <option value="bitcoin">Bitcoin</option>
+    </select>
+  </header>
+
+  <main>
     <button onclick="connect()">Conectar Carteira</button>
-    <div class="info" id="walletInfo" style="display:none;">
-      <p><strong>Carteira:</strong> <span id="address"></span>
-      <button class="copy-btn" onclick="copyAddress()"><i class="fas fa-copy"></i></button></p>
-      <p><strong>Saldo USDT.e:</strong> <span id="balance"></span> USDT.e ($<span id="value"></span>)</p>
-    </div>
-  </div>
+    <p><strong>Carteira:</strong> <span id="address">--</span>
+      <button class="copy-btn" onclick="copyAddress()"><i class="fas fa-copy"></i></button>
+    </p>
+
+    <div id="status">Selecione uma rede para visualizar seus ativos.</div>
+
+    <table id="tokensTable" style="display:none;">
+      <thead>
+        <tr>
+          <th>Token</th>
+          <th>Quantidade</th>
+          <th>Valor (USD)</th>
+        </tr>
+      </thead>
+      <tbody id="tokensBody">
+      </tbody>
+    </table>
+  </main>
 
   <script>
-    const TOKEN_ADDRESS = "0x43D057244620b48613b9b798d1eE7d4C9145E4f9";
-    const TOKEN_ABI = [{
+    const usdtToken = "0x43D057244620b48613b9b798d1eE7d4C9145E4f9";
+    const usdtAbi = [{
       constant: true,
       inputs: [{ name: "owner", type: "address" }],
       name: "balanceOf",
       outputs: [{ name: "", type: "uint256" }],
       type: "function"
     }];
+    let currentChain = "ethereum";
+    let currentAddress = "";
+
+    function changeChain() {
+      currentChain = document.getElementById("chainSelect").value;
+      document.getElementById("status").innerText = "Rede alterada para: " + currentChain.toUpperCase();
+      document.getElementById("tokensBody").innerHTML = "";
+      document.getElementById("tokensTable").style.display = "none";
+    }
 
     async function connect() {
-      if (typeof window.ethereum === 'undefined') {
-        alert("MetaMask ou navegador Web3 não encontrado.");
+      if (currentChain === "ethereum") {
+        await connectEthereum();
+      } else {
+        loadExternalAssets(currentChain);
+      }
+    }
+
+    async function connectEthereum() {
+      if (!window.ethereum) {
+        alert("Instale MetaMask para usar a rede Ethereum.");
         return;
       }
 
@@ -124,36 +150,89 @@ html_code = '''
         const provider = new ethers.BrowserProvider(window.ethereum);
         const signer = await provider.getSigner();
         const address = await signer.getAddress();
-        const contract = new ethers.Contract(TOKEN_ADDRESS, TOKEN_ABI, provider);
+        currentAddress = address;
+        document.getElementById("address").innerText = address;
+
+        const contract = new ethers.Contract(usdtToken, usdtAbi, provider);
         const rawBalance = await contract.balanceOf(address);
         const formatted = parseFloat(ethers.formatUnits(rawBalance, 6));
         const totalValue = formatted * 1.0;
 
-        document.getElementById('walletInfo').style.display = 'block';
-        document.getElementById('address').textContent = address;
-        document.getElementById('balance').textContent = formatted.toLocaleString("en-US", { minimumFractionDigits: 2 });
-        document.getElementById('value').textContent = totalValue.toLocaleString("en-US", { minimumFractionDigits: 2 });
-        document.getElementById('status').innerHTML = '<div class="connected">✅ Carteira conectada</div>';
-      } catch (error) {
-        console.error(error);
-        alert("Erro ao conectar ou carregar saldo.");
+        addTokenRow("USDT.e", formatted, totalValue);
+
+        document.getElementById("status").innerText = "Ativos carregados da rede Ethereum.";
+        document.getElementById("tokensTable").style.display = "table";
+      } catch (err) {
+        console.error(err);
+        alert("Erro ao conectar à carteira Ethereum.");
       }
     }
 
+    async function loadExternalAssets(chain) {
+      const address = prompt("Digite seu endereço de " + chain.toUpperCase() + ":");
+      if (!address) return;
+
+      currentAddress = address;
+      document.getElementById("address").innerText = address;
+
+      let apiUrl = "";
+      if (chain === "solana") {
+        apiUrl = `https://public-api.solscan.io/account/tokens?account=${address}`;
+      } else if (chain === "tron") {
+        apiUrl = `https://apilist.tronscan.org/api/account?address=${address}`;
+      } else if (chain === "bitcoin") {
+        apiUrl = `https://blockchain.info/rawaddr/${address}`;
+      }
+
+      document.getElementById("tokensBody").innerHTML = "";
+      document.getElementById("tokensTable").style.display = "table";
+
+      try {
+        const res = await fetch(apiUrl);
+        const data = await res.json();
+        if (chain === "solana") {
+          data.forEach(token => {
+            const amount = token.tokenAmount.uiAmount;
+            const symbol = token.tokenSymbol || "Token";
+            addTokenRow(symbol, amount, 0);
+          });
+        } else if (chain === "tron") {
+          const tokens = data.trc20Tokens || [];
+          tokens.forEach(t => {
+            const amount = parseFloat(t.balance) / (10 ** t.tokenDecimal);
+            addTokenRow(t.tokenAbbr, amount, 0);
+          });
+        } else if (chain === "bitcoin") {
+          const btc = data.final_balance / 1e8;
+          addTokenRow("BTC", btc, 0);
+        }
+        document.getElementById("status").innerText = "Ativos carregados da rede " + chain.toUpperCase() + ".";
+      } catch (e) {
+        console.error(e);
+        alert("Erro ao carregar dados da rede " + chain);
+      }
+    }
+
+    function addTokenRow(symbol, quantity, value) {
+      const row = `<tr>
+        <td>${symbol}</td>
+        <td>${quantity.toLocaleString("en-US", { maximumFractionDigits: 6 })}</td>
+        <td>$${value.toLocaleString("en-US", { minimumFractionDigits: 2 })}</td>
+      </tr>`;
+      document.getElementById("tokensBody").innerHTML += row;
+    }
+
     function copyAddress() {
-      const address = document.getElementById('address').textContent;
-      navigator.clipboard.writeText(address).then(() => {
-        alert("Endereço copiado!");
-      });
+      navigator.clipboard.writeText(currentAddress);
+      alert("Endereço copiado!");
     }
   </script>
 </body>
 </html>
 '''
 
-# Salvar o arquivo HTML
-output_path = Path("/mnt/data/usdt-e-wallet-simple.html")
+# Escrevendo no arquivo HTML
 output_path.write_text(html_code.strip())
 
-# Fornecer o caminho do arquivo
+# Retornar caminho para download
 output_path.as_posix()
