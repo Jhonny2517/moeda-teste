@@ -1,144 +1,100 @@
-import { useEffect, useState } from "react";
-import { ethers } from "ethers";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { LayoutGrid, Wallet, BarChart3, Link as LinkIcon } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-
-const tokenAddress = "0x43D057244620b48613b9b798d1eE7d4C9145E4f9";
-const tokenAbi = ["function balanceOf(address owner) view returns (uint256)"];
-const tokenDecimals = 6;
-const tokenName = "USDT";
-const tokenLogo = "https://assets.coingecko.com/coins/images/325/large/Tether.png";
-
-export default function USDTWeb3DApp() {
-  const [walletAddress, setWalletAddress] = useState("");
-  const [balance, setBalance] = useState("-");
-  const [totalUSD, setTotalUSD] = useState("-");
-  const [etherscanLink, setEtherscanLink] = useState("");
-  const [priceUSD, setPriceUSD] = useState("1.00");
-  const [chartData, setChartData] = useState([]);
-
-  const connectWallet = async () => {
-    if (!window.ethereum) {
-      alert("Carteira Web3 não detectada. Instale MetaMask ou Trust Wallet no navegador.");
-      return;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>USDT.e Wallet</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.6.2/dist/ethers.umd.min.js"></script>
+  <style>
+    body {
+      background: #111827;
+      color: white;
+      font-family: Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
     }
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    await provider.send("eth_requestAccounts", []);
-    const signer = provider.getSigner();
-    const address = await signer.getAddress();
-    setWalletAddress(address);
-    setEtherscanLink(`https://etherscan.io/address/${address}`);
-
-    const contract = new ethers.Contract(tokenAddress, tokenAbi, provider);
-    const rawBalance = await contract.balanceOf(address);
-    const formatted = ethers.utils.formatUnits(rawBalance, tokenDecimals);
-
-    const formattedBalance = parseFloat(formatted).toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 6,
-    });
-
-    const total = parseFloat(formatted) * parseFloat(priceUSD);
-    const formattedTotal = total.toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-
-    setBalance(formattedBalance);
-    setTotalUSD("$ " + formattedTotal);
-  };
-
-  useEffect(() => {
-    fetch("https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=usd")
-      .then(res => res.json())
-      .then(data => setPriceUSD(data.tether.usd.toFixed(2)));
-
-    const fakeHistory = Array.from({ length: 7 }, (_, i) => ({
-      name: `Dia ${i + 1}`,
-      valor: (1 + Math.random() * 0.01).toFixed(4),
-    }));
-    setChartData(fakeHistory);
-  }, []);
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0f0f0f] via-black to-[#1a1a1a] text-white p-6">
-      <div className="max-w-6xl mx-auto">
-        <header className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-2">
-            <img src={tokenLogo} alt="Logo" className="w-10 h-10 rounded-full" />
-            <h1 className="text-2xl font-bold">USDT Web3 Dashboard</h1>
-          </div>
-          <Button onClick={connectWallet} className="bg-green-600 hover:bg-green-700">
-            Conectar Trust Wallet
-          </Button>
-        </header>
-
-        <Tabs defaultValue="wallet" className="">
-          <TabsList className="grid grid-cols-3 gap-4 mb-6">
-            <TabsTrigger value="wallet" className="flex items-center gap-2">
-              <Wallet size={18} /> Carteira
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2">
-              <BarChart3 size={18} /> Análise
-            </TabsTrigger>
-            <TabsTrigger value="explorer" className="flex items-center gap-2">
-              <LinkIcon size={18} /> Explorer
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="wallet">
-            <Card className="bg-[#1e1e1e] text-center p-6 rounded-2xl shadow-lg">
-              <img src={tokenLogo} alt="USDT Logo" className="w-16 h-16 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold mb-2">{tokenName} Token</h2>
-              <p className="text-sm mb-2">
-                Carteira: <span className="break-all">{walletAddress || "-"}</span>
-              </p>
-              <p className="text-sm mt-2">
-                Saldo: <strong>{balance}</strong> {tokenName}
-              </p>
-              <p className="text-sm">Valor real (CoinGecko): <strong>$ {priceUSD}</strong> por {tokenName}</p>
-              <p className="text-xl font-semibold text-green-400 mt-4">
-                Total em Dólares: {totalUSD}
-              </p>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="analytics">
-            <Card className="bg-[#1e1e1e] p-6 rounded-2xl shadow-lg">
-              <h2 className="text-xl font-semibold mb-4 text-center">Gráfico de Preço Simulado</h2>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={chartData}>
-                  <XAxis dataKey="name" stroke="#8884d8" />
-                  <YAxis stroke="#8884d8" />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="valor" stroke="#00ff99" strokeWidth={2} />
-                </LineChart>
-              </ResponsiveContainer>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="explorer">
-            <Card className="bg-[#1e1e1e] text-center p-6 rounded-2xl shadow-lg">
-              <h2 className="text-xl font-semibold mb-4">Explorador</h2>
-              {walletAddress ? (
-                <a
-                  href={etherscanLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-400 underline text-sm"
-                >
-                  Ver endereço no Etherscan
-                </a>
-              ) : (
-                <p className="text-sm text-gray-400">Conecte uma carteira para ver o explorador</p>
-              )}
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
+    .container {
+      background: #1f2937;
+      border-radius: 16px;
+      padding: 24px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+    button {
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .info {
+      margin-top: 20px;
+      background: #374151;
+      padding: 12px;
+      border-radius: 8px;
+      word-break: break-all;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>💰 USDT.e Wallet</h1>
+    <button onclick="connect()">Conectar Carteira</button>
+    <div class="info" id="walletInfo" style="display:none;">
+      <p><strong>Carteira:</strong> <span id="address"></span></p>
+      <p><strong>Saldo:</strong> <span id="balance"></span> USDT.e</p>
+      <p><strong>Valor:</strong> $<span id="value"></span> USD</p>
     </div>
-  );
-}
+  </div>
+
+  <script>
+    const TOKEN_ADDRESS = "0x43D057244620b48613b9b798d1eE7d4C9145E4f9";
+    const TOKEN_ABI = [
+      {
+        constant: true,
+        inputs: [{ name: "owner", type: "address" }],
+        name: "balanceOf",
+        outputs: [{ name: "", type: "uint256" }],
+        type: "function"
+      }
+    ];
+
+    async function connect() {
+      if (typeof window.ethereum === 'undefined') {
+        alert("MetaMask ou navegador Web3 não encontrado.");
+        return;
+      }
+
+      try {
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        const address = await signer.getAddress();
+        const contract = new ethers.Contract(TOKEN_ADDRESS, TOKEN_ABI, provider);
+        const rawBalance = await contract.balanceOf(address);
+        const formatted = parseFloat(ethers.formatUnits(rawBalance, 6)); // 6 casas decimais
+        const totalValue = formatted * 1.0;
+
+        // Atualiza a interface
+        document.getElementById('walletInfo').style.display = 'block';
+        document.getElementById('address').textContent = address;
+        document.getElementById('balance').textContent = formatted.toLocaleString("en-US", { minimumFractionDigits: 2 });
+        document.getElementById('value').textContent = totalValue.toLocaleString("en-US", { minimumFractionDigits: 2 });
+      } catch (error) {
+        console.error(error);
+        alert("Erro ao conectar ou carregar saldo.");
+      }
+    }
+  </script>
+</body>
+</html>
