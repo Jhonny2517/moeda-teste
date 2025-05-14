@@ -1,10 +1,16 @@
+from pathlib import Path
+import shutil
+
+# Criar um HTML com as funcionalidades visuais solicitadas
+html_code = '''
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>USDT.e Wallet</title>
+  <title>USDT.e Wallet Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/ethers@6.6.2/dist/ethers.umd.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   <style>
     body {
       background: #111827;
@@ -21,9 +27,25 @@
       border-radius: 16px;
       padding: 24px;
       width: 100%;
-      max-width: 400px;
+      max-width: 420px;
       box-shadow: 0 0 20px rgba(0,0,0,0.3);
       text-align: center;
+    }
+    .logo {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .logo i {
+      font-size: 28px;
+      margin-right: 10px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      text-transform: uppercase;
+      color: #60a5fa;
     }
     button {
       background-color: #3b82f6;
@@ -33,6 +55,14 @@
       border-radius: 8px;
       font-size: 16px;
       cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    button:hover {
+      background-color: #2563eb;
+      transform: scale(1.03);
+    }
+    button:active {
+      transform: scale(0.97);
     }
     .info {
       margin-top: 20px;
@@ -41,33 +71,47 @@
       border-radius: 8px;
       word-break: break-all;
     }
-    h1 {
-      margin-bottom: 20px;
+    .copy-btn {
+      background: transparent;
+      color: #60a5fa;
+      border: none;
+      margin-left: 8px;
+      cursor: pointer;
+    }
+    .connected {
+      background-color: #10b981;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      display: inline-block;
+      margin-bottom: 10px;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>💰 USDT.e Wallet</h1>
+    <div class="logo">
+      <i class="fas fa-wallet"></i>
+      <h1>USDT.e Wallet</h1>
+    </div>
+    <div id="status"></div>
     <button onclick="connect()">Conectar Carteira</button>
     <div class="info" id="walletInfo" style="display:none;">
-      <p><strong>Carteira:</strong> <span id="address"></span></p>
-      <p><strong>Saldo:</strong> <span id="balance"></span> USDT.e</p>
-      <p><strong>Valor:</strong> $<span id="value"></span> USD</p>
+      <p><strong>Carteira:</strong> <span id="address"></span>
+      <button class="copy-btn" onclick="copyAddress()"><i class="fas fa-copy"></i></button></p>
+      <p><strong>Saldo USDT.e:</strong> <span id="balance"></span> USDT.e ($<span id="value"></span>)</p>
     </div>
   </div>
 
   <script>
     const TOKEN_ADDRESS = "0x43D057244620b48613b9b798d1eE7d4C9145E4f9";
-    const TOKEN_ABI = [
-      {
-        constant: true,
-        inputs: [{ name: "owner", type: "address" }],
-        name: "balanceOf",
-        outputs: [{ name: "", type: "uint256" }],
-        type: "function"
-      }
-    ];
+    const TOKEN_ABI = [{
+      constant: true,
+      inputs: [{ name: "owner", type: "address" }],
+      name: "balanceOf",
+      outputs: [{ name: "", type: "uint256" }],
+      type: "function"
+    }];
 
     async function connect() {
       if (typeof window.ethereum === 'undefined') {
@@ -82,19 +126,34 @@
         const address = await signer.getAddress();
         const contract = new ethers.Contract(TOKEN_ADDRESS, TOKEN_ABI, provider);
         const rawBalance = await contract.balanceOf(address);
-        const formatted = parseFloat(ethers.formatUnits(rawBalance, 6)); // 6 casas decimais
+        const formatted = parseFloat(ethers.formatUnits(rawBalance, 6));
         const totalValue = formatted * 1.0;
 
-        // Atualiza a interface
         document.getElementById('walletInfo').style.display = 'block';
         document.getElementById('address').textContent = address;
         document.getElementById('balance').textContent = formatted.toLocaleString("en-US", { minimumFractionDigits: 2 });
         document.getElementById('value').textContent = totalValue.toLocaleString("en-US", { minimumFractionDigits: 2 });
+        document.getElementById('status').innerHTML = '<div class="connected">✅ Carteira conectada</div>';
       } catch (error) {
         console.error(error);
         alert("Erro ao conectar ou carregar saldo.");
       }
     }
+
+    function copyAddress() {
+      const address = document.getElementById('address').textContent;
+      navigator.clipboard.writeText(address).then(() => {
+        alert("Endereço copiado!");
+      });
+    }
   </script>
 </body>
 </html>
+'''
+
+# Salvar o arquivo HTML
+output_path = Path("/mnt/data/usdt-e-wallet-simple.html")
+output_path.write_text(html_code.strip())
+
+# Fornecer o caminho do arquivo
+output_path.as_posix()
